@@ -1,0 +1,10 @@
+{
+  "name": "sprite-collection",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fortnite Sprite Collection tracker — static PWA with optional Epic-account cloud sync.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

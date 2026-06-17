@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0c0f17">
+<title>Sprite Collection — Chapter 7 Season 3</title>
+
+<!-- PWA: makes the page installable as an app -->
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sprites">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --void:#0c0f17; --panel:#141a26; --raised:#1c2433; --line:#283143;
+    --frost:#eef3fb; --fog:#8893a8;
+    --rare:#2e9dff; --epic:#b14dff; --legendary:#ff9d2e; --mythic:#ffd84d;
+    --gold:#f5c542; --gummy:#ff79c0; --ok:#3ddc84;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Inter",system-ui,sans-serif;
+    background:radial-gradient(1100px 600px at 50% -10%, #18213a 0%, transparent 60%), var(--void);
+    color:var(--frost); min-height:100vh; padding:28px 18px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+
+  .hero{text-align:center;margin-bottom:8px}
+  .eyebrow{font-family:"Saira Condensed",sans-serif;font-weight:600;letter-spacing:.34em;text-transform:uppercase;font-size:13px;color:var(--fog)}
+  h1{
+    font-family:"Saira Condensed",sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.02em;
+    font-size:clamp(34px,8vw,58px);line-height:.95;margin:4px 0 22px;
+    background:linear-gradient(95deg,var(--rare),var(--epic) 40%,var(--legendary) 72%,var(--mythic));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+
+  .meter{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;margin-bottom:14px}
+  .meter-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .count{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:46px;line-height:1}
+  .count small{font-size:24px;color:var(--fog);font-weight:600}
+  .count-label{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.2em;font-size:13px;color:var(--fog);font-weight:600}
+  .pct{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:30px}
+  .bar{height:14px;border-radius:99px;background:var(--raised);overflow:hidden;border:1px solid var(--line)}
+  .bar-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--rare),var(--epic) 38%,var(--legendary) 70%,var(--mythic));transition:width .5s cubic-bezier(.22,1,.36,1);box-shadow:0 0 16px rgba(255,216,77,.35)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:12px;padding:12px 14px}
+  .stat[data-r="Rare"]{border-top-color:var(--rare)} .stat[data-r="Epic"]{border-top-color:var(--epic)}
+  .stat[data-r="Legendary"]{border-top-color:var(--legendary)} .stat[data-r="Mythic"]{border-top-color:var(--mythic)}
+  .stat .r{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700}
+  .stat[data-r="Rare"] .r{color:var(--rare)} .stat[data-r="Epic"] .r{color:var(--epic)}
+  .stat[data-r="Legendary"] .r{color:var(--legendary)} .stat[data-r="Mythic"] .r{color:var(--mythic)}
+  .stat .n{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:20px;margin-top:2px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--rar);border-radius:14px;padding:18px;margin-bottom:14px;transition:box-shadow .35s,border-color .35s;position:relative}
+  .card.complete{box-shadow:0 0 0 1px var(--rar), 0 0 28px -6px var(--rar)}
+  .card[data-r="Rare"]{--rar:var(--rare)} .card[data-r="Epic"]{--rar:var(--epic)}
+  .card[data-r="Legendary"]{--rar:var(--legendary)} .card[data-r="Mythic"]{--rar:var(--mythic)}
+  .card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+  .name{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:24px;line-height:1}
+  .badge{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:11px;padding:4px 9px;border-radius:99px;white-space:nowrap;color:var(--rar);background:color-mix(in srgb,var(--rar) 16%,transparent);border:1px solid color-mix(in srgb,var(--rar) 45%,transparent)}
+  .done-tick{margin-left:auto;color:var(--ok);font-weight:700;font-size:13px;font-family:"Saira Condensed",sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:0;transition:opacity .3s;white-space:nowrap}
+  .card.complete .done-tick{opacity:1}
+  .ability{color:var(--fog);font-size:14px;line-height:1.45;margin:8px 0 16px}
+  .new-badge{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--void);background:var(--ok);padding:3px 7px;border-radius:99px;margin-left:8px}
+  .remove{position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--fog);cursor:pointer;font-size:14px;line-height:1;transition:.15s}
+  .remove:hover{border-color:#5a3a44;color:#ff8a8a}
+
+  .variants{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{flex:1 1 150px;min-width:140px;display:flex;align-items:center;gap:10px;background:var(--raised);border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;cursor:pointer;text-align:left;color:var(--frost);font-family:inherit;font-size:14px;font-weight:500;transition:border-color .18s,background .18s,transform .08s}
+  .chip:hover{border-color:color-mix(in srgb,var(--accent) 60%,var(--line))}
+  .chip:active{transform:scale(.97)}
+  .chip:focus-visible{outline:2px solid var(--frost);outline-offset:2px}
+  .chip .box{width:22px;height:22px;border-radius:6px;flex:none;border:2px solid color-mix(in srgb,var(--accent) 55%,var(--fog));display:grid;place-items:center;transition:background .18s,border-color .18s}
+  .chip .box svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:.18s}
+  .chip .label{display:flex;flex-direction:column;line-height:1.15}
+  .chip .label .kind{font-size:11px;color:var(--fog);text-transform:uppercase;letter-spacing:.08em}
+  .chip[data-on="1"]{background:color-mix(in srgb,var(--accent) 14%,var(--raised));border-color:var(--accent);animation:pop .3s}
+  .chip[data-on="1"] .box{background:var(--accent);border-color:var(--accent)}
+  .chip[data-on="1"] .box svg{opacity:1;transform:scale(1)}
+  @keyframes pop{40%{transform:scale(1.04)}}
+  .chip[data-v="standard"]{--accent:var(--rar)} .chip[data-v="gold"]{--accent:var(--gold)} .chip[data-v="gummy"]{--accent:var(--gummy)}
+
+  /* mastery level selector */
+  .level{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+  .level .lv-label{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--fog);font-weight:700}
+  .level .lv-btns{display:flex;gap:6px}
+  .lv{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--raised);color:var(--fog);font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:border-color .15s,background .15s,color .15s,transform .08s}
+  .lv:hover{border-color:color-mix(in srgb,var(--rar) 60%,var(--line));color:var(--frost)}
+  .lv:active{transform:scale(.92)}
+  .lv:focus-visible{outline:2px solid var(--frost);outline-offset:2px}
+  .lv[data-on="1"]{background:color-mix(in srgb,var(--rar) 22%,var(--raised));border-color:var(--rar);color:var(--frost)}
+  .lv.max[data-on="1"]{background:color-mix(in srgb,var(--mythic) 30%,var(--raised));border-color:var(--mythic);color:#fff;box-shadow:0 0 12px -2px var(--mythic)}
+  .mastered-badge{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--void);background:var(--mythic);padding:4px 9px;border-radius:99px;white-space:nowrap;box-shadow:0 0 12px rgba(255,216,77,.5)}
+  .mastered-line{margin-top:14px;font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--fog);font-weight:600}
+  .mastered-line b{color:var(--mythic);font-size:16px}
+
+  .actions{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+  .btn{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:12px;padding:11px 18px;border-radius:10px;cursor:pointer;transition:.18s;border:1px solid var(--line);background:none;color:var(--fog)}
+  .btn:hover{color:var(--frost);border-color:#3a475e}
+  .btn.primary{background:color-mix(in srgb,var(--rare) 16%,transparent);border-color:color-mix(in srgb,var(--rare) 50%,transparent);color:#bfe2ff}
+  .btn.primary:hover{background:color-mix(in srgb,var(--rare) 26%,transparent);color:#dcefff}
+  .btn.danger:hover{border-color:#5a3a44;color:#ff8a8a}
+  .save-note{text-align:center;color:var(--fog);font-size:12px;margin-top:16px;line-height:1.5}
+
+  /* Epic account / cloud sync bar */
+  .account{display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:-2px 0 20px;font-size:13px;color:var(--fog)}
+  .account.show{display:flex}
+  .account .who{color:var(--frost);font-weight:600}
+  .account .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);margin-right:4px;vertical-align:middle}
+
+  /* add-sprite panel */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px;display:none}
+  .panel.open{display:block;animation:slide .25s}
+  @keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .panel h2{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:18px;margin-bottom:14px}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .field label{font-size:12px;color:var(--fog);text-transform:uppercase;letter-spacing:.08em;font-family:"Saira Condensed",sans-serif;font-weight:600}
+  .field input,.field select{background:var(--raised);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--frost);font-family:inherit;font-size:14px}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--rare)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row .field{flex:1 1 160px}
+  .check{flex-direction:row;align-items:center;gap:10px}
+  .check input{width:18px;height:18px;accent-color:var(--rare)}
+  .panel-actions{display:flex;gap:10px;margin-top:4px}
+
+  @media (max-width:560px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .chip{flex:1 1 100%}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Fortnite · Chapter 7 Season 3</div>
+    <h1>Sprite Collection</h1>
+  </div>
+
+  <!-- Cloud sync (only appears when the sync backend is deployed) -->
+  <div class="account" id="account">
+    <button class="btn primary" id="epic-login" style="display:none">Sign in with Epic</button>
+    <button class="btn" id="code-open" style="display:none">Use a sync code</button>
+    <span id="sync-status"></span>
+    <button class="btn" id="code-copy" style="display:none">Copy code</button>
+    <button class="btn" id="sync-disconnect" style="display:none">Disconnect</button>
+  </div>
+
+  <!-- Sync-code entry -->
+  <div class="panel" id="code-panel">
+    <h2>Sync with a code</h2>
+    <p style="color:var(--fog);font-size:13px;line-height:1.5;margin:-4px 0 14px">
+      Enter the <b>same code</b> on every device to share one collection — no account needed.
+      Keep it somewhere safe: anyone who has the code can see and edit this collection.
+    </p>
+    <div class="field">
+      <label for="code-input">Sync code</label>
+      <input id="code-input" type="text" placeholder="e.g. mango-falcon-7421" autocomplete="off" spellcheck="false" maxlength="60">
+    </div>
+    <div class="panel-actions">
+      <button class="btn primary" id="code-connect">Connect</button>
+      <button class="btn" id="code-generate">Generate one</button>
+      <button class="btn" id="code-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="meter">
+    <div class="meter-top">
+      <div>
+        <div class="count"><span id="have">0</span><small>/<span id="total">0</span></small></div>
+        <div class="count-label">Sprites Collected</div>
+      </div>
+      <div class="pct" id="pct">0%</div>
+    </div>
+    <div class="bar"><div class="bar-fill" id="fill"></div></div>
+    <div class="mastered-line" id="mastered-line"></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <!-- Add Sprite form -->
+  <div class="panel" id="panel">
+    <h2>Add a Sprite</h2>
+    <div class="field">
+      <label for="f-name">Sprite name</label>
+      <input id="f-name" type="text" placeholder="e.g. King Sprite" maxlength="40">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="f-rarity">Rarity</label>
+        <select id="f-rarity">
+          <option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option>
+        </select>
+      </div>
+      <div class="field check">
+        <input id="f-variants" type="checkbox" checked>
+        <label for="f-variants" style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--frost)">Has Gold &amp; Gummy variants</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-ability">Ability (optional)</label>
+      <input id="f-ability" type="text" placeholder="What does it do?" maxlength="160">
+    </div>
+    <div class="panel-actions">
+      <button class="btn primary" id="f-add">Add Sprite</button>
+      <button class="btn" id="f-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="actions">
+    <button class="btn primary" id="install" style="display:none">⤓ Install app</button>
+    <button class="btn primary" id="toggle-add">+ Add Sprite</button>
+    <button class="btn" id="export">Export backup</button>
+    <button class="btn" id="import">Import backup</button>
+    <button class="btn danger" id="reset">Reset</button>
+  </div>
+  <div class="save-note" id="note">Tap a variant when you find it — progress saves to this device automatically.</div>
+  <input id="file-input" type="file" accept="application/json,.json" hidden>
+</div>
+
+<script>
+"use strict";
+const K_STATE = "fnsprites.collected.c7s3";
+const K_CUSTOM = "fnsprites.custom.c7s3";
+const K_LEVEL = "fnsprites.levels.c7s3";
+const K_DELETED = "fnsprites.deleted.c7s3";
+const MAX_LEVEL = 5;
+const RARITY_ORDER = {Rare:0, Epic:1, Legendary:2, Mythic:3};
+
+// Verified June 15, 2026. Add new ones with the "+ Add Sprite" button — no editing needed.
+const BASE_SPRITES = [
+  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water."},
+  {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests."},
+  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent."},
+  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming."},
+  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration."},
+  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them."},
+  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage."},
+  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo."},
+  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot."},
+  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item."},
+  {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true},
+];
+
+const VARIANTS = [{key:"standard",kind:"Standard"},{key:"gold",kind:"Gold"},{key:"gummy",kind:"Gummy"}];
+const tickSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#0c0f17" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>';
+
+let state = {};       // {"water:standard":true}
+let levels = {};      // {"water":3}  current mastery level per sprite (1..5; 5 = mastered)
+let custom = [];      // user-added sprites
+let deleted = [];     // ids of built-in sprites the user removed
+let SPRITES = [];
+let canStore = true;
+
+const $ = id => document.getElementById(id);
+const note = msg => { $("note").textContent = msg; };
+const variantsFor = s => s.single ? [VARIANTS[0]] : VARIANTS;
+const vid = (s,v) => s.id + ":" + v.key;
+
+function rebuild(){
+  SPRITES = BASE_SPRITES.filter(s=>!deleted.includes(s.id)).concat(custom)
+    .sort((a,b)=>(RARITY_ORDER[a.rarity]??9)-(RARITY_ORDER[b.rarity]??9));
+}
+
+// ---- storage (real browser localStorage) ----
+function loadAll(){
+  try{
+    const s = localStorage.getItem(K_STATE); if(s) state = JSON.parse(s);
+    const c = localStorage.getItem(K_CUSTOM); if(c) custom = JSON.parse(c);
+    const l = localStorage.getItem(K_LEVEL); if(l) levels = JSON.parse(l);
+    const d = localStorage.getItem(K_DELETED); if(d) deleted = JSON.parse(d);
+    // probe write access
+    localStorage.setItem("__fnprobe","1"); localStorage.removeItem("__fnprobe");
+  }catch(e){
+    canStore = false;
+  }
+  rebuild();
+}
+function saveState(){ if(canStore) try{ localStorage.setItem(K_STATE, JSON.stringify(state)); }catch(e){ canStore=false; } schedulePush(); }
+function saveCustom(){ if(canStore) try{ localStorage.setItem(K_CUSTOM, JSON.stringify(custom)); }catch(e){ canStore=false; } schedulePush(); }
+function saveLevels(){ if(canStore) try{ localStorage.setItem(K_LEVEL, JSON.stringify(levels)); }catch(e){ canStore=false; } schedulePush(); }
+function saveDeleted(){ if(canStore) try{ localStorage.setItem(K_DELETED, JSON.stringify(deleted)); }catch(e){ canStore=false; } schedulePush(); }
+
+// ---- render ----
+function render(){
+  const list = $("list"); list.innerHTML = "";
+  SPRITES.forEach(s=>{
+    const vs = variantsFor(s);
+    const complete = vs.every(v=>state[vid(s,v)]);
+    const lv = levels[s.id] || 0;
+    const mastered = lv >= MAX_LEVEL;
+    const card = document.createElement("div");
+    card.className = "card" + (complete ? " complete" : "");
+    card.dataset.r = s.rarity;
+    const chips = vs.map(v=>{
+      const on = state[vid(s,v)] ? "1":"0";
+      return `<button class="chip" data-v="${v.key}" data-on="${on}" data-id="${vid(s,v)}" aria-pressed="${on==="1"}">
+        <span class="box">${tickSVG}</span>
+        <span class="label"><span class="kind">${v.kind}</span><span>${s.single? esc(s.name) : esc(s.name.replace(" Sprite",""))}</span></span>
+      </button>`;
+    }).join("");
+    const lvBtns = Array.from({length:MAX_LEVEL},(_,i)=>{
+      const n = i+1;
+      return `<button class="lv${n===MAX_LEVEL?" max":""}" data-lv="${s.id}:${n}" data-on="${lv>=n?"1":"0"}" aria-label="Set level ${n}" aria-pressed="${lv>=n}">${n}</button>`;
+    }).join("");
+    card.innerHTML = `
+      <button class="remove" data-remove="${s.id}" title="Remove this sprite">✕</button>
+      <div class="card-head">
+        <div class="name">${esc(s.name)}${s.custom ? '<span class="new-badge">Added</span>' : ''}</div>
+        <span class="badge">${s.rarity}</span>
+        ${mastered ? '<span class="mastered-badge">★ Mastered</span>' : ''}
+        <span class="done-tick">✓ Complete</span>
+      </div>
+      <div class="ability">${esc(s.ability||"")}</div>
+      <div class="level">
+        <span class="lv-label">Level</span>
+        <div class="lv-btns">${lvBtns}</div>
+      </div>
+      <div class="variants">${chips}</div>`;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll(".lv").forEach(b=>b.addEventListener("click",()=>{
+    const [id,nStr] = b.dataset.lv.split(":");
+    const n = +nStr;
+    // Tap a level to set it; tap the current level again to step down (tap "1" twice clears it).
+    if(levels[id] === n){ if(n===1) delete levels[id]; else levels[id] = n-1; }
+    else levels[id] = n;
+    saveLevels(); render();
+  }));
+
+  list.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+    const id=c.dataset.id;
+    if(state[id]) delete state[id]; else state[id]=true;
+    saveState(); render();
+  }));
+  list.querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.dataset.remove;
+    const sp=SPRITES.find(s=>s.id===id);
+    if(sp && confirm(`Remove "${sp.name}" and its progress?`)){
+      if(sp.custom) custom = custom.filter(s=>s.id!==id);
+      else if(!deleted.includes(id)) deleted.push(id);
+      variantsFor(sp).forEach(v=>delete state[sp.id+":"+v.key]);
+      delete levels[id];
+      saveCustom(); saveDeleted(); saveState(); saveLevels(); rebuild(); render();
+      note(sp.custom ? `Removed ${sp.name}.` : `Removed ${sp.name}. Use Reset to restore built-in sprites.`);
+    }
+  }));
+  updateMeter();
+}
+
+function updateMeter(){
+  const all = SPRITES.flatMap(s=>variantsFor(s).map(v=>vid(s,v)));
+  const have = all.filter(id=>state[id]).length;
+  const pct = all.length ? Math.round(have/all.length*100) : 0;
+  $("have").textContent = have; $("total").textContent = all.length;
+  $("pct").textContent = pct+"%"; $("fill").style.width = pct+"%";
+  const tiers=["Rare","Epic","Legendary","Mythic"];
+  $("stats").innerHTML = tiers.map(t=>{
+    const ids = SPRITES.filter(s=>s.rarity===t).flatMap(s=>variantsFor(s).map(v=>vid(s,v)));
+    const h = ids.filter(id=>state[id]).length;
+    return `<div class="stat" data-r="${t}"><div class="r">${t}</div><div class="n">${h} / ${ids.length}</div></div>`;
+  }).join("");
+  const mastered = SPRITES.filter(s=>(levels[s.id]||0) >= MAX_LEVEL).length;
+  $("mastered-line").innerHTML = `<b>${mastered}</b> / ${SPRITES.length} sprites mastered &nbsp;·&nbsp; Lv ${MAX_LEVEL} = mastered`;
+  if(pct===100 && all.length) note("Every Sprite collected — gotta catch 'em all, done! 🏆");
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function slug(name){
+  let base = name.toLowerCase().replace(/sprite/g,"").replace(/[^a-z0-9]+/g,"").trim() || "sprite";
+  let id = base, n = 2; const used = new Set(SPRITES.map(s=>s.id));
+  while(used.has(id)){ id = base + n; n++; }
+  return id;
+}
+
+// ---- add sprite ----
+const panel = $("panel");
+$("toggle-add").addEventListener("click",()=>{ panel.classList.toggle("open"); if(panel.classList.contains("open")) $("f-name").focus(); });
+$("f-cancel").addEventListener("click",()=>panel.classList.remove("open"));
+$("f-add").addEventListener("click",()=>{
+  const name = $("f-name").value.trim();
+  if(!name){ $("f-name").focus(); return; }
+  const sp = {
+    id: slug(name), name, rarity: $("f-rarity").value,
+    ability: $("f-ability").value.trim(),
+    single: !$("f-variants").checked, custom: true
+  };
+  custom.push(sp); saveCustom(); rebuild(); render();
+  $("f-name").value=""; $("f-ability").value=""; $("f-variants").checked=true;
+  panel.classList.remove("open");
+  note(`Added ${sp.name}. It now appears in your tracker.`);
+});
+
+// ---- export / import (move between devices) ----
+$("export").addEventListener("click",()=>{
+  const payload = {version:2, exported:new Date().toISOString(), state, levels, custom, deleted};
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "fortnite-sprites-backup.json";
+  a.click(); URL.revokeObjectURL(a.href);
+  note("Backup downloaded. Import it on another device to sync.");
+});
+$("import").addEventListener("click",()=>$("file-input").click());
+$("file-input").addEventListener("change",e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(d.state && typeof d.state==="object") state = d.state;
+      if(d.levels && typeof d.levels==="object") levels = d.levels;
+      if(Array.isArray(d.custom)) custom = d.custom;
+      if(Array.isArray(d.deleted)) deleted = d.deleted;
+      saveState(); saveLevels(); saveCustom(); saveDeleted(); rebuild(); render();
+      note("Backup imported — your collection is restored.");
+    }catch(err){ note("That file didn't look like a valid backup."); }
+  };
+  r.readAsText(file);
+  e.target.value = "";
+});
+
+// ---- reset ----
+$("reset").addEventListener("click",()=>{
+  if(confirm("Reset all progress? Clears every checkmark and level, and restores any removed built-in sprites. (Sprites you added yourself stay.)")){
+    state = {}; levels = {}; deleted = [];
+    saveState(); saveLevels(); saveDeleted(); rebuild(); render();
+    note("Reset complete — built-in sprites restored and progress cleared.");
+  }
+});
+
+// ---- cloud sync (optional; needs the /api backend deployed) ----
+// Two ways to sync the checkmarks YOU tap across devices:
+//   • "Sign in with Epic" — ties your collection to your Epic account.
+//   • "Sync code"         — a shared passphrase; same code = same collection. No account.
+// Neither can read which sprites you OWN (Epic has no such API). When the backend
+// isn't deployed, every call here fails quietly and the app stays 100% local.
+const SYNC_BASE = "/api";
+const K_CODE = "fnsprites.synccode";
+let syncUser = null;        // null | {mode:"epic",name} | {mode:"code",code}
+let syncTimer = null;
+let epicAvailable = false;
+
+const api = (path, opts) => fetch(SYNC_BASE + path, { credentials:"same-origin", ...opts });
+
+// Route a request to the right endpoint/auth for the active mode.
+function remoteReq(method, bodyObj){
+  const headers = bodyObj ? { "Content-Type":"application/json" } : {};
+  const body = bodyObj ? JSON.stringify(bodyObj) : undefined;
+  if(syncUser && syncUser.mode === "code"){
+    headers["X-Sync-Code"] = syncUser.code;
+    return api("/sync", { method, headers, body });
+  }
+  return api("/progress", { method, headers, body });   // epic (cookie) mode
+}
+
+function schedulePush(){
+  if(!syncUser) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushRemote, 800);   // debounce rapid taps into one save
+}
+async function pushRemote(){
+  if(!syncUser) return;
+  try{ await remoteReq("PUT", { state, levels, custom, deleted }); }
+  catch(e){ /* offline — localStorage still has it; resend on next change */ }
+}
+function mergeRemote(remote){
+  // Union of checkmarks (never lose one); custom sprites merged by id; level takes the higher.
+  if(remote && remote.state) for(const k in remote.state){ if(remote.state[k]) state[k] = true; }
+  if(remote && remote.levels) for(const k in remote.levels){
+    const n = +remote.levels[k]; if(n > (levels[k]||0)) levels[k] = n;
+  }
+  if(remote && Array.isArray(remote.custom)){
+    const ids = new Set(custom.map(s=>s.id));
+    remote.custom.forEach(s=>{ if(s && s.id && !ids.has(s.id)){ custom.push(s); ids.add(s.id); } });
+  }
+  if(remote && Array.isArray(remote.deleted)){
+    remote.deleted.forEach(id=>{ if(!deleted.includes(id)) deleted.push(id); });
+  }
+}
+async function pullMergePush(){
+  try{
+    const r = await remoteReq("GET");
+    if(r.ok){ mergeRemote(await r.json()); saveState(); saveLevels(); saveCustom(); saveDeleted(); rebuild(); render(); }
+  }catch(e){}
+  pushRemote();
+}
+
+function showConnected(label, disconnectLabel, isCode){
+  $("epic-login").style.display = "none";
+  $("code-open").style.display = "none";
+  $("code-panel").classList.remove("open");
+  $("sync-status").innerHTML = `<span class="dot"></span>${label}`;
+  $("code-copy").style.display = isCode ? "" : "none";
+  $("sync-disconnect").textContent = disconnectLabel;
+  $("sync-disconnect").style.display = "";
+}
+function showDisconnected(){
+  syncUser = null;
+  $("epic-login").style.display = epicAvailable ? "" : "none";
+  $("code-open").style.display = "";
+  $("code-copy").style.display = "none";
+  $("sync-disconnect").style.display = "none";
+  $("sync-status").textContent = "Sync your collection across devices.";
+}
+
+async function initSync(){
+  let me;
+  try{
+    const res = await api("/me");
+    if(!res.ok) return;            // no backend deployed -> stay local-only, hide the bar
+    me = await res.json();
+  }catch(e){ return; }            // offline / no backend
+  $("account").classList.add("show");
+  epicAvailable = !!me.epic;
+
+  if(me.loggedIn){
+    syncUser = { mode:"epic", name: me.name };
+    showConnected(`Synced as <span class="who">${esc(me.name)}</span>`, "Sign out", false);
+    await pullMergePush();
+    return;
+  }
+  let savedCode = null;
+  try{ savedCode = localStorage.getItem(K_CODE); }catch(e){}
+  if(savedCode){
+    syncUser = { mode:"code", code: savedCode };
+    showConnected("Synced via sync code", "Disconnect", true);
+    await pullMergePush();
+    return;
+  }
+  showDisconnected();
+}
+
+// Friendly, memorable codes: two words + four digits (hashed server-side).
+function genCode(){
+  const words = ["mango","falcon","river","pixel","cobalt","amber","willow","comet",
+    "otter","maple","quartz","nimbus","cedar","raven","lotus","ember","tundra","coral",
+    "violet","drift","harbor","meadow","saffron","onyx","breeze","cinder","fable","glacier",
+    "harvest","indigo","juniper","kestrel","lumen","marble","nectar","opal"];
+  const rand = (n)=> crypto.getRandomValues(new Uint32Array(1))[0] % n;
+  const w = ()=> words[rand(words.length)];
+  return `${w()}-${w()}-${String(rand(10000)).padStart(4,"0")}`;
+}
+
+$("epic-login").addEventListener("click", ()=>{ location.href = SYNC_BASE + "/auth/login"; });
+$("code-open").addEventListener("click", ()=>{ $("code-panel").classList.add("open"); $("code-input").focus(); });
+$("code-cancel").addEventListener("click", ()=>$("code-panel").classList.remove("open"));
+$("code-generate").addEventListener("click", ()=>{ $("code-input").value = genCode(); $("code-input").focus(); });
+$("code-connect").addEventListener("click", async ()=>{
+  const code = $("code-input").value.trim();
+  if(code.length < 6){ note("Pick a sync code of at least 6 characters (or tap “Generate one”)."); $("code-input").focus(); return; }
+  try{ localStorage.setItem(K_CODE, code); }catch(e){}
+  syncUser = { mode:"code", code };
+  showConnected("Synced via sync code", "Disconnect", true);
+  $("code-input").value = "";
+  await pullMergePush();
+  note("Connected. Enter this same code on your other devices to share this collection.");
+});
+$("code-copy").addEventListener("click", async ()=>{
+  if(!syncUser || syncUser.mode !== "code") return;
+  try{ await navigator.clipboard.writeText(syncUser.code); note("Sync code copied to clipboard."); }
+  catch(e){ note("Your sync code is: " + syncUser.code); }
+});
+$("sync-disconnect").addEventListener("click", ()=>{
+  if(syncUser && syncUser.mode === "epic"){ syncUser = null; location.href = SYNC_BASE + "/logout"; return; }
+  try{ localStorage.removeItem(K_CODE); }catch(e){}
+  clearTimeout(syncTimer);
+  showDisconnected();
+  note("Disconnected from cloud sync. Your collection stays saved on this device.");
+});
+
+// ---- PWA: service worker + install prompt ----
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+let deferredPrompt = null;
+const installBtn = $("install");
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); deferredPrompt = e; installBtn.style.display = "";
+});
+installBtn.addEventListener("click",async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null; installBtn.style.display = "none";
+});
+window.addEventListener("appinstalled",()=>{ installBtn.style.display = "none"; });
+
+// ---- init ----
+loadAll();
+render();
+if(!canStore){
+  note("Heads up: this browser is blocking storage (common inside previews). Open the hosted app or the downloaded file directly and your progress will save.");
+}
+
+// Friendly note after returning from Epic, then clean the URL.
+const loginParam = new URLSearchParams(location.search).get("login");
+if(loginParam === "ok") note("Signed in — your collection now syncs to your Epic account.");
+if(loginParam === "failed") note("Epic sign-in didn't complete. Please try again.");
+if(loginParam){ history.replaceState(null, "", location.pathname); }
+
+initSync();
+</script>
+</body>
+</html>

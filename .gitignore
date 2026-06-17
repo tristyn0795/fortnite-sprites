@@ -1,0 +1,14 @@
+# Dependencies (Netlify installs these during deploy)
+node_modules/
+
+# Netlify CLI / build output
+.netlify/
+
+# Logs & env
+*.log
+.env
+.env.*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

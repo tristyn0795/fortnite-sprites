@@ -1,0 +1,16 @@
+{
+  "name": "Sprite Collection — Chapter 7 Season 3",
+  "short_name": "Sprites",
+  "description": "Track every Fortnite Chapter 7 Season 3 Sprite and variant you collect.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0f17",
+  "theme_color": "#0c0f17",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
