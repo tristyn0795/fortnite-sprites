@@ -1,5 +1,5 @@
 // Bump CACHE version whenever you change index.html or icons.
-const CACHE = "sprites-v4";
+const CACHE = "sprites-v5";
 const SHELL = [
   "./",
   "./index.html",
