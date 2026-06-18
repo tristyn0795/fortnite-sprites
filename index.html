@@ -104,6 +104,29 @@
   .mastered-line{margin-top:14px;font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--fog);font-weight:600}
   .mastered-line b{color:var(--mythic);font-size:16px}
 
+  /* search + filter + bulk toolbar */
+  .toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+  .search{width:100%;background:var(--panel);border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;color:var(--frost);font-family:inherit;font-size:15px}
+  .search:focus{outline:none;border-color:var(--rare)}
+  .search::placeholder{color:var(--fog)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .fbtn{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:8px 14px;border-radius:99px;cursor:pointer;border:1.5px solid var(--line);background:var(--panel);color:var(--fog);transition:.15s}
+  .fbtn:hover{color:var(--frost);border-color:#3a475e}
+  .fbtn[data-on="1"]{color:var(--void);font-weight:800}
+  .fbtn[data-f="all"][data-on="1"]{background:var(--frost);border-color:var(--frost)}
+  .fbtn[data-f="Rare"][data-on="1"]{background:var(--rare);border-color:var(--rare)}
+  .fbtn[data-f="Epic"][data-on="1"]{background:var(--epic);border-color:var(--epic)}
+  .fbtn[data-f="Legendary"][data-on="1"]{background:var(--legendary);border-color:var(--legendary)}
+  .fbtn[data-f="Mythic"][data-on="1"]{background:var(--mythic);border-color:var(--mythic)}
+  .bulk{display:flex;gap:8px;flex-wrap:wrap}
+  .empty{text-align:center;color:var(--fog);padding:30px 10px;font-size:14px}
+
+  /* per-card variants header with one-tap collect-all */
+  .vhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
+  .vlabel{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--fog);font-weight:700}
+  .mini{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:6px 11px;border-radius:8px;cursor:pointer;border:1.5px solid var(--line);background:var(--raised);color:var(--fog);transition:.15s;white-space:nowrap}
+  .mini:hover{color:var(--frost);border-color:color-mix(in srgb,var(--rar) 55%,var(--line))}
+
   .actions{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
   .btn{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:12px;padding:11px 18px;border-radius:10px;cursor:pointer;transition:.18s;border:1px solid var(--line);background:none;color:var(--fog)}
   .btn:hover{color:var(--frost);border-color:#3a475e}
@@ -217,6 +240,22 @@
     </div>
   </div>
 
+  <!-- Search / filter / bulk toolbar -->
+  <div class="toolbar">
+    <input id="search" class="search" type="search" placeholder="🔍  Search sprites by name…" autocomplete="off" spellcheck="false">
+    <div class="filters" id="filters">
+      <button class="fbtn" data-f="all" data-on="1">All</button>
+      <button class="fbtn" data-f="Rare" data-on="0">Rare</button>
+      <button class="fbtn" data-f="Epic" data-on="0">Epic</button>
+      <button class="fbtn" data-f="Legendary" data-on="0">Legendary</button>
+      <button class="fbtn" data-f="Mythic" data-on="0">Mythic</button>
+    </div>
+    <div class="bulk">
+      <button class="btn" id="collect-shown">✓ Collect all shown</button>
+      <button class="btn danger" id="clear-shown">Clear shown</button>
+    </div>
+  </div>
+
   <div id="list"></div>
 
   <div class="actions">
@@ -263,6 +302,8 @@ let custom = [];      // user-added sprites
 let deleted = [];     // ids of built-in sprites the user removed
 let SPRITES = [];
 let canStore = true;
+let filterText = "";       // search box text (lowercased)
+let filterRarity = "all";  // "all" | "Rare" | "Epic" | "Legendary" | "Mythic"
 
 const $ = id => document.getElementById(id);
 const note = msg => { $("note").textContent = msg; };
@@ -294,9 +335,23 @@ function saveLevels(){ if(canStore) try{ localStorage.setItem(K_LEVEL, JSON.stri
 function saveDeleted(){ if(canStore) try{ localStorage.setItem(K_DELETED, JSON.stringify(deleted)); }catch(e){ canStore=false; } schedulePush(); }
 
 // ---- render ----
+// Sprites currently passing the search box + rarity filter.
+function shownSprites(){
+  return SPRITES.filter(s=>{
+    if(filterRarity !== "all" && s.rarity !== filterRarity) return false;
+    if(filterText && !s.name.toLowerCase().includes(filterText)) return false;
+    return true;
+  });
+}
 function render(){
   const list = $("list"); list.innerHTML = "";
-  SPRITES.forEach(s=>{
+  const shown = shownSprites();
+  if(!shown.length){
+    list.innerHTML = `<div class="empty">No sprites match your search or filter.</div>`;
+    updateMeter();
+    return;
+  }
+  shown.forEach(s=>{
     const vs = variantsFor(s);
     const complete = vs.every(v=>state[vid(s,v)]);
     const lv = levels[s.id] || 0;
@@ -328,6 +383,10 @@ function render(){
         <span class="lv-label">Level</span>
         <div class="lv-btns">${lvBtns}</div>
       </div>
+      ${vs.length>1 ? `<div class="vhead">
+        <span class="vlabel">Variants</span>
+        <button class="mini" data-all="${s.id}">${complete ? "✕ Clear all" : "✓ Collect all"}</button>
+      </div>` : ""}
       <div class="variants">${chips}</div>`;
     list.appendChild(card);
   });
@@ -344,6 +403,13 @@ function render(){
   list.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
     const id=c.dataset.id;
     if(state[id]) delete state[id]; else state[id]=true;
+    saveState(); render();
+  }));
+  list.querySelectorAll("[data-all]").forEach(b=>b.addEventListener("click",()=>{
+    const sp=SPRITES.find(s=>s.id===b.dataset.all); if(!sp) return;
+    const vs=variantsFor(sp);
+    const allOn=vs.every(v=>state[vid(sp,v)]);
+    vs.forEach(v=>{ if(allOn) delete state[vid(sp,v)]; else state[vid(sp,v)]=true; });
     saveState(); render();
   }));
   list.querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{
@@ -402,6 +468,30 @@ $("f-add").addEventListener("click",()=>{
   $("f-name").value=""; $("f-ability").value=""; $("f-variants").checked=true;
   panel.classList.remove("open");
   note(`Added ${sp.name}. It now appears in your tracker.`);
+});
+
+// ---- search / filter / bulk ----
+$("search").addEventListener("input", e=>{ filterText = e.target.value.trim().toLowerCase(); render(); });
+$("filters").addEventListener("click", e=>{
+  const b = e.target.closest(".fbtn"); if(!b) return;
+  filterRarity = b.dataset.f;
+  $("filters").querySelectorAll(".fbtn").forEach(x=>x.dataset.on = (x===b ? "1":"0"));
+  render();
+});
+$("collect-shown").addEventListener("click", ()=>{
+  const sprites = shownSprites();
+  if(!sprites.length) return;
+  sprites.forEach(s=>variantsFor(s).forEach(v=>state[vid(s,v)]=true));
+  saveState(); render();
+  note(`Marked every variant collected for the ${sprites.length} sprite${sprites.length>1?"s":""} shown.`);
+});
+$("clear-shown").addEventListener("click", ()=>{
+  const sprites = shownSprites();
+  if(!sprites.length) return;
+  if(!confirm(`Clear collected variants for the ${sprites.length} sprite${sprites.length>1?"s":""} currently shown? (Levels are not affected.)`)) return;
+  sprites.forEach(s=>variantsFor(s).forEach(v=>delete state[vid(s,v)]));
+  saveState(); render();
+  note("Cleared variants for the sprites shown.");
 });
 
 // ---- export / import (move between devices) ----
