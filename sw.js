@@ -1,5 +1,5 @@
 // Bump CACHE version whenever you change index.html or icons.
-const CACHE = "sprites-v12";
+const CACHE = "sprites-v13";
 const SPRITE_IDS = ["water","earth","fire","duck","ghost","demon","king","punk","dream","zeropoint"];
 const VARIANT_KEYS = ["standard","gold","gummy","galaxy"]; // Galaxy released for all 10 sprites
 const SPRITE_IMAGES = [

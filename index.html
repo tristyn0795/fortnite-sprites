@@ -142,7 +142,7 @@
   .tile-img{width:100%;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45));transition:filter .18s,opacity .18s}
   .tile-noimg{display:grid;place-items:center;background:var(--panel);border-radius:8px;color:var(--fog);font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:20px;text-transform:uppercase}
   .tile-kind{font-family:"Saira Condensed",sans-serif;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--fog)}
-  .tile[data-on="0"] .tile-img{opacity:.4;filter:grayscale(.7) brightness(.82)}
+  .tile[data-on="0"] .tile-img{opacity:.88}  /* unowned: full colour, just slightly dimmed (owned shows border + check) */
   .tile[data-on="1"]{background:color-mix(in srgb,var(--accent) 16%,var(--raised));border-color:var(--accent)}
   .tile[data-on="1"] .tile-kind{color:var(--frost)}
   .tile-check{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--ok);display:grid;place-items:center;opacity:0;transform:scale(.4);transition:.16s}
