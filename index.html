@@ -120,13 +120,41 @@
   .fbtn[data-f="Legendary"][data-on="1"]{background:var(--legendary);border-color:var(--legendary)}
   .fbtn[data-f="Mythic"][data-on="1"]{background:var(--mythic);border-color:var(--mythic)}
   .bulk{display:flex;gap:8px;flex-wrap:wrap}
-  .empty{text-align:center;color:var(--fog);padding:30px 10px;font-size:14px}
+  .empty{text-align:center;color:var(--fog);padding:30px 10px;font-size:14px;grid-column:1/-1}
 
   /* per-card variants header with one-tap collect-all */
   .vhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
   .vlabel{font-family:"Saira Condensed",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--fog);font-weight:700}
   .mini{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:6px 11px;border-radius:8px;cursor:pointer;border:1.5px solid var(--line);background:var(--raised);color:var(--fog);transition:.15s;white-space:nowrap}
   .mini:hover{color:var(--frost);border-color:color-mix(in srgb,var(--rar) 55%,var(--line))}
+
+  /* responsive grid of sprite cards (fortnite.gg-style) */
+  #list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+  #list .card{margin-bottom:0}
+
+  /* variant art tiles */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,1fr));gap:8px}
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 6px 7px;background:var(--raised);border:1.5px solid var(--line);border-radius:11px;cursor:pointer;color:var(--frost);font-family:inherit;transition:border-color .15s,background .15s,transform .08s}
+  .tile:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+  .tile:active{transform:scale(.95)}
+  .tile:focus-visible{outline:2px solid var(--frost);outline-offset:2px}
+  .tile-img{width:100%;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45));transition:filter .18s,opacity .18s}
+  .tile-noimg{display:grid;place-items:center;background:var(--panel);border-radius:8px;color:var(--fog);font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:20px;text-transform:uppercase}
+  .tile-kind{font-family:"Saira Condensed",sans-serif;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--fog)}
+  .tile[data-on="0"] .tile-img{opacity:.4;filter:grayscale(.7) brightness(.82)}
+  .tile[data-on="1"]{background:color-mix(in srgb,var(--accent) 16%,var(--raised));border-color:var(--accent)}
+  .tile[data-on="1"] .tile-kind{color:var(--frost)}
+  .tile-check{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--ok);display:grid;place-items:center;opacity:0;transform:scale(.4);transition:.16s}
+  .tile-check svg{width:11px;height:11px}
+  .tile[data-on="1"] .tile-check{opacity:1;transform:scale(1)}
+  .tile[data-v="standard"]{--accent:var(--rar)} .tile[data-v="gold"]{--accent:var(--gold)} .tile[data-v="gummy"]{--accent:var(--gummy)} .tile[data-v="galaxy"]{--accent:var(--galaxy)}
+  .vlabel b{color:var(--frost)}
+
+  /* ownership filter + variant dropdown */
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .vfilter{background:var(--panel);border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;color:var(--frost);font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:12px;cursor:pointer}
+  .vfilter:focus{outline:none;border-color:var(--rare)}
+  .fbtn[data-own][data-on="1"]{background:var(--frost);border-color:var(--frost)}
 
   .actions{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
   .btn{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:12px;padding:11px 18px;border-radius:10px;cursor:pointer;transition:.18s;border:1px solid var(--line);background:none;color:var(--fog)}
@@ -159,7 +187,7 @@
 
   @media (max-width:560px){
     .stats{grid-template-columns:repeat(2,1fr)}
-    .chip{flex:1 1 100%}
+    #list{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -202,7 +230,7 @@
     <div class="meter-top">
       <div>
         <div class="count"><span id="have">0</span><small>/<span id="total">0</span></small></div>
-        <div class="count-label">Sprites Collected</div>
+        <div class="count-label">Variants Owned</div>
       </div>
       <div class="pct" id="pct">0%</div>
     </div>
@@ -255,6 +283,20 @@
       <button class="fbtn" data-f="Legendary" data-on="0">Legendary</button>
       <button class="fbtn" data-f="Mythic" data-on="0">Mythic</button>
     </div>
+    <div class="ctrls">
+      <div class="filters" id="ownfilters">
+        <button class="fbtn" data-own="all" data-on="1">All</button>
+        <button class="fbtn" data-own="owned" data-on="0">Owned</button>
+        <button class="fbtn" data-own="missing" data-on="0">Missing</button>
+      </div>
+      <select id="variant-filter" class="vfilter" aria-label="Filter by variant">
+        <option value="all">All variants</option>
+        <option value="standard">Standard</option>
+        <option value="gold">Gold</option>
+        <option value="gummy">Gummy</option>
+        <option value="galaxy">Galaxy</option>
+      </select>
+    </div>
     <div class="bulk">
       <button class="btn" id="collect-shown">✓ Collect all shown</button>
       <button class="btn danger" id="clear-shown">Clear shown</button>
@@ -296,7 +338,7 @@ const BASE_SPRITES = [
   {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true, galaxy:true},
   {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true, galaxy:true},
   {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true, galaxy:true},
-  {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true},
+  {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true, img:true},
 ];
 
 const VARIANTS = [{key:"standard",kind:"Standard"},{key:"gold",kind:"Gold"},{key:"gummy",kind:"Gummy"},{key:"galaxy",kind:"Galaxy"}];
@@ -310,6 +352,8 @@ let SPRITES = [];
 let canStore = true;
 let filterText = "";       // search box text (lowercased)
 let filterRarity = "all";  // "all" | "Rare" | "Epic" | "Legendary" | "Mythic"
+let ownFilter = "all";     // "all" | "owned" | "missing"
+let variantView = "all";   // "all" | "standard" | "gold" | "gummy" | "galaxy"
 
 const $ = id => document.getElementById(id);
 const note = msg => { $("note").textContent = msg; };
@@ -342,37 +386,48 @@ function saveLevels(){ if(canStore) try{ localStorage.setItem(K_LEVEL, JSON.stri
 function saveDeleted(){ if(canStore) try{ localStorage.setItem(K_DELETED, JSON.stringify(deleted)); }catch(e){ canStore=false; } schedulePush(); }
 
 // ---- render ----
-// Sprites currently passing the search box + rarity filter.
-function shownSprites(){
-  return SPRITES.filter(s=>{
-    if(filterRarity !== "all" && s.rarity !== filterRarity) return false;
-    if(filterText && !s.name.toLowerCase().includes(filterText)) return false;
-    return true;
-  });
+// Returns [{s, tvs}] for sprites passing search + rarity + variant + ownership filters.
+// tvs = the variant objects to show for that sprite (narrowed by the variant dropdown).
+function shownList(){
+  const out = [];
+  for(const s of SPRITES){
+    if(filterRarity !== "all" && s.rarity !== filterRarity) continue;
+    if(filterText && !s.name.toLowerCase().includes(filterText)) continue;
+    const tvs = variantsFor(s).filter(v => variantView === "all" || v.key === variantView);
+    if(!tvs.length) continue;                       // e.g. a single-variant sprite under "Galaxy"
+    const owned = tvs.filter(v => state[vid(s,v)]).length;
+    if(ownFilter === "owned" && owned === 0) continue;
+    if(ownFilter === "missing" && owned === tvs.length) continue;
+    out.push({s, tvs});
+  }
+  return out;
 }
 function render(){
   const list = $("list"); list.innerHTML = "";
-  const shown = shownSprites();
+  const shown = shownList();
   if(!shown.length){
-    list.innerHTML = `<div class="empty">No sprites match your search or filter.</div>`;
+    list.innerHTML = `<div class="empty">No sprites match your filters.</div>`;
     updateMeter();
     return;
   }
-  shown.forEach(s=>{
-    const vs = variantsFor(s);
-    const complete = vs.every(v=>state[vid(s,v)]);
+  shown.forEach(({s, tvs})=>{
+    const allV = variantsFor(s);
+    const complete = allV.every(v=>state[vid(s,v)]);
+    const ownedAll = allV.filter(v=>state[vid(s,v)]).length;
     const lv = levels[s.id] || 0;
     const mastered = lv >= MAX_LEVEL;
     const card = document.createElement("div");
     card.className = "card" + (complete ? " complete" : "");
     card.dataset.r = s.rarity;
-    const chips = vs.map(v=>{
+    const tiles = tvs.map(v=>{
       const on = state[vid(s,v)] ? "1":"0";
-      const art = s.img ? `<img class="chip-img" src="./images/${s.id}-${v.key}.webp" alt="" loading="lazy" onerror="this.remove()">` : "";
-      return `<button class="chip" data-v="${v.key}" data-on="${on}" data-id="${vid(s,v)}" aria-pressed="${on==="1"}">
-        <span class="box">${tickSVG}</span>
+      const art = s.img
+        ? `<img class="tile-img" src="./images/${s.id}-${v.key}.webp" alt="${esc(v.kind)}" loading="lazy" onerror="this.style.visibility='hidden'">`
+        : `<span class="tile-img tile-noimg">${esc(s.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2))}</span>`;
+      return `<button class="tile" data-v="${v.key}" data-on="${on}" data-id="${vid(s,v)}" aria-pressed="${on==="1"}" title="${esc(s.name)} — ${v.kind}">
         ${art}
-        <span class="label"><span class="kind">${v.kind}</span><span>${s.single? esc(s.name) : esc(s.name.replace(" Sprite",""))}</span></span>
+        <span class="tile-check">${tickSVG}</span>
+        <span class="tile-kind">${v.kind}</span>
       </button>`;
     }).join("");
     const lvBtns = Array.from({length:MAX_LEVEL},(_,i)=>{
@@ -385,18 +440,17 @@ function render(){
         <div class="name">${esc(s.name)}${s.custom ? '<span class="new-badge">Added</span>' : ''}</div>
         <span class="badge">${s.rarity}</span>
         ${mastered ? '<span class="mastered-badge">★ Mastered</span>' : ''}
-        <span class="done-tick">✓ Complete</span>
       </div>
-      <div class="ability">${esc(s.ability||"")}</div>
+      ${s.ability ? `<div class="ability">${esc(s.ability)}</div>` : ""}
       <div class="level">
         <span class="lv-label">Level</span>
         <div class="lv-btns">${lvBtns}</div>
       </div>
-      ${vs.length>1 ? `<div class="vhead">
-        <span class="vlabel">Variants</span>
-        <button class="mini" data-all="${s.id}">${complete ? "✕ Clear all" : "✓ Collect all"}</button>
-      </div>` : ""}
-      <div class="variants">${chips}</div>`;
+      <div class="vhead">
+        <span class="vlabel">Owned <b>${ownedAll}/${allV.length}</b></span>
+        ${allV.length>1 ? `<button class="mini" data-all="${s.id}">${complete ? "✕ Clear all" : "✓ Collect all"}</button>` : ""}
+      </div>
+      <div class="tiles">${tiles}</div>`;
     list.appendChild(card);
   });
 
@@ -408,8 +462,7 @@ function render(){
     else levels[id] = n;
     saveLevels(); render();
   }));
-
-  list.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+  list.querySelectorAll(".tile").forEach(c=>c.addEventListener("click",()=>{
     const id=c.dataset.id;
     if(state[id]) delete state[id]; else state[id]=true;
     saveState(); render();
@@ -449,8 +502,9 @@ function updateMeter(){
     return `<div class="stat" data-r="${t}"><div class="r">${t}</div><div class="n">${h} / ${ids.length}</div></div>`;
   }).join("");
   const mastered = SPRITES.filter(s=>(levels[s.id]||0) >= MAX_LEVEL).length;
-  $("mastered-line").innerHTML = `<b>${mastered}</b> / ${SPRITES.length} sprites mastered &nbsp;·&nbsp; Lv ${MAX_LEVEL} = mastered`;
-  if(pct===100 && all.length) note("Every Sprite collected — gotta catch 'em all, done! 🏆");
+  const levelSum = SPRITES.reduce((a,s)=>a + (levels[s.id]||0), 0);
+  $("mastered-line").innerHTML = `<b>${mastered}</b> mastered &nbsp;·&nbsp; <b>${levelSum}</b> total levels`;
+  if(pct===100 && all.length) note("Every variant collected — gotta catch 'em all, done! 🏆");
 }
 
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -488,20 +542,27 @@ $("filters").addEventListener("click", e=>{
   $("filters").querySelectorAll(".fbtn").forEach(x=>x.dataset.on = (x===b ? "1":"0"));
   render();
 });
+$("ownfilters").addEventListener("click", e=>{
+  const b = e.target.closest(".fbtn"); if(!b) return;
+  ownFilter = b.dataset.own;
+  $("ownfilters").querySelectorAll(".fbtn").forEach(x=>x.dataset.on = (x===b ? "1":"0"));
+  render();
+});
+$("variant-filter").addEventListener("change", e=>{ variantView = e.target.value; render(); });
 $("collect-shown").addEventListener("click", ()=>{
-  const sprites = shownSprites();
-  if(!sprites.length) return;
-  sprites.forEach(s=>variantsFor(s).forEach(v=>state[vid(s,v)]=true));
+  const shown = shownList();
+  if(!shown.length) return;
+  shown.forEach(({s,tvs})=>tvs.forEach(v=>state[vid(s,v)]=true));
   saveState(); render();
-  note(`Marked every variant collected for the ${sprites.length} sprite${sprites.length>1?"s":""} shown.`);
+  note(`Marked the ${shown.length} shown sprite${shown.length>1?"s":""} as owned.`);
 });
 $("clear-shown").addEventListener("click", ()=>{
-  const sprites = shownSprites();
-  if(!sprites.length) return;
-  if(!confirm(`Clear collected variants for the ${sprites.length} sprite${sprites.length>1?"s":""} currently shown? (Levels are not affected.)`)) return;
-  sprites.forEach(s=>variantsFor(s).forEach(v=>delete state[vid(s,v)]));
+  const shown = shownList();
+  if(!shown.length) return;
+  if(!confirm(`Clear owned variants for the ${shown.length} shown sprite${shown.length>1?"s":""}? (Levels are not affected.)`)) return;
+  shown.forEach(({s,tvs})=>tvs.forEach(v=>delete state[vid(s,v)]));
   saveState(); render();
-  note("Cleared variants for the sprites shown.");
+  note("Cleared the shown sprites.");
 });
 
 // ---- export / import (move between devices) ----
