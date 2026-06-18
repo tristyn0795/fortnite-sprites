@@ -1,5 +1,8 @@
 // Bump CACHE version whenever you change index.html or icons.
-const CACHE = "sprites-v6";
+const CACHE = "sprites-v7";
+const SPRITE_IDS = ["water","earth","fire","duck","ghost","demon","king","punk","dream","zeropoint"];
+const VARIANT_KEYS = ["standard","gold","gummy"];
+const SPRITE_IMAGES = SPRITE_IDS.flatMap(id => VARIANT_KEYS.map(v => `./images/${id}-${v}.webp`));
 const SHELL = [
   "./",
   "./index.html",
@@ -8,7 +11,8 @@ const SHELL = [
   "./icon-512.png",
   "./icon-maskable-512.png",
   "./apple-touch-icon.png",
-  "./favicon-32.png"
+  "./favicon-32.png",
+  ...SPRITE_IMAGES
 ];
 
 self.addEventListener("install", e => {

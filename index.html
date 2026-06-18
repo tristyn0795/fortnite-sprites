@@ -82,6 +82,7 @@
   .chip:focus-visible{outline:2px solid var(--frost);outline-offset:2px}
   .chip .box{width:22px;height:22px;border-radius:6px;flex:none;border:2px solid color-mix(in srgb,var(--accent) 55%,var(--fog));display:grid;place-items:center;transition:background .18s,border-color .18s}
   .chip .box svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:.18s}
+  .chip-img{width:36px;height:36px;flex:none;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
   .chip .label{display:flex;flex-direction:column;line-height:1.15}
   .chip .label .kind{font-size:11px;color:var(--fog);text-transform:uppercase;letter-spacing:.08em}
   .chip[data-on="1"]{background:color-mix(in srgb,var(--accent) 14%,var(--raised));border-color:var(--accent);animation:pop .3s}
@@ -279,17 +280,18 @@ const MAX_LEVEL = 5;
 const RARITY_ORDER = {Rare:0, Epic:1, Legendary:2, Mythic:3};
 
 // Verified June 15, 2026. Add new ones with the "+ Add Sprite" button — no editing needed.
+// img:true means bundled artwork exists at ./images/<id>-<variant>.webp for each variant.
 const BASE_SPRITES = [
-  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water."},
-  {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests."},
-  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent."},
-  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming."},
-  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration."},
-  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them."},
-  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage."},
-  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo."},
-  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot."},
-  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item."},
+  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water.", img:true},
+  {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests.", img:true},
+  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent.", img:true},
+  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming.", img:true},
+  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration.", img:true},
+  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them.", img:true},
+  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage.", img:true},
+  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true},
+  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true},
+  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true},
   {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true},
 ];
 
@@ -361,8 +363,10 @@ function render(){
     card.dataset.r = s.rarity;
     const chips = vs.map(v=>{
       const on = state[vid(s,v)] ? "1":"0";
+      const art = s.img ? `<img class="chip-img" src="./images/${s.id}-${v.key}.webp" alt="" loading="lazy" onerror="this.remove()">` : "";
       return `<button class="chip" data-v="${v.key}" data-on="${on}" data-id="${vid(s,v)}" aria-pressed="${on==="1"}">
         <span class="box">${tickSVG}</span>
+        ${art}
         <span class="label"><span class="kind">${v.kind}</span><span>${s.single? esc(s.name) : esc(s.name.replace(" Sprite",""))}</span></span>
       </button>`;
     }).join("");
