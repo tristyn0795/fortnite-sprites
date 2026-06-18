@@ -61,8 +61,9 @@
   .stat[data-r="Legendary"] .r{color:var(--legendary)} .stat[data-r="Mythic"] .r{color:var(--mythic)}
   .stat .n{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:20px;margin-top:2px}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--rar);border-radius:14px;padding:18px;margin-bottom:14px;transition:box-shadow .35s,border-color .35s;position:relative}
-  .card.complete{box-shadow:0 0 0 1px var(--rar), 0 0 28px -6px var(--rar)}
+  .card{background:linear-gradient(180deg,color-mix(in srgb,var(--rar) 7%,var(--panel)),var(--panel) 60%);border:1px solid color-mix(in srgb,var(--rar) 32%,var(--line));border-left:4px solid var(--rar);border-radius:14px;padding:18px;margin-bottom:14px;transition:box-shadow .35s,border-color .35s;position:relative;box-shadow:0 8px 26px -18px var(--rar)}
+  .card:hover{box-shadow:0 0 0 1px color-mix(in srgb,var(--rar) 45%,transparent), 0 10px 30px -16px var(--rar)}
+  .card.complete{border-color:var(--rar);box-shadow:0 0 0 1px var(--rar), 0 0 34px -4px var(--rar)}
   .card[data-r="Rare"]{--rar:var(--rare)} .card[data-r="Epic"]{--rar:var(--epic)}
   .card[data-r="Legendary"]{--rar:var(--legendary)} .card[data-r="Mythic"]{--rar:var(--mythic)}
   .card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
@@ -149,6 +150,8 @@
   .tile[data-on="1"] .tile-check{opacity:1;transform:scale(1)}
   .tile[data-v="standard"]{--accent:var(--rar)} .tile[data-v="gold"]{--accent:var(--gold)} .tile[data-v="gummy"]{--accent:var(--gummy)} .tile[data-v="galaxy"]{--accent:var(--galaxy)}
   .vlabel b{color:var(--frost)}
+  .pill{font-family:"Saira Condensed",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:4px 9px;border-radius:99px;white-space:nowrap;color:var(--fog);background:var(--raised);border:1px solid var(--line)}
+  .pill.tag{color:#bfe2ff;border-color:color-mix(in srgb,var(--rare) 45%,transparent);background:color-mix(in srgb,var(--rare) 15%,transparent)}
 
   /* ownership filter + variant dropdown */
   .ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -328,17 +331,17 @@ const RARITY_ORDER = {Rare:0, Epic:1, Legendary:2, Mythic:3};
 // Verified June 15, 2026. Add new ones with the "+ Add Sprite" button — no editing needed.
 // img:true means bundled artwork exists at ./images/<id>-<variant>.webp for each variant.
 const BASE_SPRITES = [
-  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water.", img:true, galaxy:true},
-  {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests.", img:true, galaxy:true},
-  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent.", img:true, galaxy:true},
-  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming.", img:true, galaxy:true},
-  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration.", img:true, galaxy:true},
-  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them.", img:true, galaxy:true},
-  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage.", img:true, galaxy:true},
-  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true, galaxy:true},
-  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true, galaxy:true},
-  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true, galaxy:true},
-  {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true, img:true},
+  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water.", img:true, galaxy:true, drop:"13.92%", tags:["Starter"]},
+  {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests.", img:true, galaxy:true, drop:"13.92%", tags:["Starter"]},
+  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent.", img:true, galaxy:true, drop:"13.92%", tags:["Starter"]},
+  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming.", img:true, galaxy:true, drop:"5.22%"},
+  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration.", img:true, galaxy:true, drop:"5.22%"},
+  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them.", img:true, galaxy:true, drop:"5.22%"},
+  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage.", img:true, galaxy:true, drop:"5.22%"},
+  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true, galaxy:true, drop:"2.436%"},
+  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true, galaxy:true, drop:"2.436%"},
+  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true, galaxy:true, drop:"1.044%"},
+  {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true, img:true, drop:"1.5%"},
 ];
 
 const VARIANTS = [{key:"standard",kind:"Standard"},{key:"gold",kind:"Gold"},{key:"gummy",kind:"Gummy"},{key:"galaxy",kind:"Galaxy"}];
@@ -439,6 +442,8 @@ function render(){
       <div class="card-head">
         <div class="name">${esc(s.name)}${s.custom ? '<span class="new-badge">Added</span>' : ''}</div>
         <span class="badge">${s.rarity}</span>
+        ${s.drop ? `<span class="pill" title="Drop chance">${esc(s.drop)}</span>` : ''}
+        ${(s.tags||[]).map(t=>`<span class="pill tag">${esc(t)}</span>`).join('')}
         ${mastered ? '<span class="mastered-badge">★ Mastered</span>' : ''}
       </div>
       ${s.ability ? `<div class="ability">${esc(s.ability)}</div>` : ""}
