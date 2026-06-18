@@ -1,5 +1,5 @@
 // Bump CACHE version whenever you change index.html or icons.
-const CACHE = "sprites-v11";
+const CACHE = "sprites-v12";
 const SPRITE_IDS = ["water","earth","fire","duck","ghost","demon","king","punk","dream","zeropoint"];
 const VARIANT_KEYS = ["standard","gold","gummy","galaxy"]; // Galaxy released for all 10 sprites
 const SPRITE_IMAGES = [
@@ -39,8 +39,20 @@ self.addEventListener("fetch", e => {
   // Never cache the sync/login API — it must always hit the network.
   if (sameOrigin && url.pathname.startsWith("/api/")) return;
 
+  // The page itself (navigations): network-first so a new deploy shows up immediately;
+  // fall back to the cached shell only when offline. This prevents stale-version bugs.
+  if (sameOrigin && req.mode === "navigate") {
+    e.respondWith(
+      fetch(req).then(res => {
+        if (res && res.ok) caches.open(CACHE).then(c => c.put(req, res.clone()));
+        return res;
+      }).catch(() => caches.match(req).then(hit => hit || caches.match("./index.html")))
+    );
+    return;
+  }
+
   if (sameOrigin) {
-    // App shell: serve from cache first, fall back to network and refresh cache.
+    // Static assets (images, icons): cache-first, refresh in background.
     e.respondWith(
       caches.match(req).then(hit => {
         const net = fetch(req).then(res => {
