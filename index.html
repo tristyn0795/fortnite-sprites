@@ -24,7 +24,7 @@
     --void:#0c0f17; --panel:#141a26; --raised:#1c2433; --line:#283143;
     --frost:#eef3fb; --fog:#8893a8;
     --rare:#2e9dff; --epic:#b14dff; --legendary:#ff9d2e; --mythic:#ffd84d;
-    --gold:#f5c542; --gummy:#ff79c0; --ok:#3ddc84;
+    --gold:#f5c542; --gummy:#ff79c0; --galaxy:#7b6cff; --ok:#3ddc84;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
@@ -89,7 +89,7 @@
   .chip[data-on="1"] .box{background:var(--accent);border-color:var(--accent)}
   .chip[data-on="1"] .box svg{opacity:1;transform:scale(1)}
   @keyframes pop{40%{transform:scale(1.04)}}
-  .chip[data-v="standard"]{--accent:var(--rar)} .chip[data-v="gold"]{--accent:var(--gold)} .chip[data-v="gummy"]{--accent:var(--gummy)}
+  .chip[data-v="standard"]{--accent:var(--rar)} .chip[data-v="gold"]{--accent:var(--gold)} .chip[data-v="gummy"]{--accent:var(--gummy)} .chip[data-v="galaxy"]{--accent:var(--galaxy)}
 
   /* mastery level selector */
   .level{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
@@ -230,6 +230,10 @@
         <input id="f-variants" type="checkbox" checked>
         <label for="f-variants" style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--frost)">Has Gold &amp; Gummy variants</label>
       </div>
+      <div class="field check">
+        <input id="f-galaxy" type="checkbox">
+        <label for="f-galaxy" style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--frost)">Has Galaxy variant</label>
+      </div>
     </div>
     <div class="field">
       <label for="f-ability">Ability (optional)</label>
@@ -282,20 +286,20 @@ const RARITY_ORDER = {Rare:0, Epic:1, Legendary:2, Mythic:3};
 // Verified June 15, 2026. Add new ones with the "+ Add Sprite" button — no editing needed.
 // img:true means bundled artwork exists at ./images/<id>-<variant>.webp for each variant.
 const BASE_SPRITES = [
-  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water.", img:true},
+  {id:"water", name:"Water Sprite", rarity:"Rare", ability:"Replenishes your (and your teammates') Shield when in water.", img:true, galaxy:true},
   {id:"earth", name:"Earth Sprite", rarity:"Rare", ability:"Increases your chance of finding additional rare items in chests.", img:true},
-  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent.", img:true},
-  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming.", img:true},
-  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration.", img:true},
-  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them.", img:true},
-  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage.", img:true},
-  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true},
-  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true},
-  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true},
+  {id:"fire", name:"Fire Sprite", rarity:"Rare", ability:"Spawns fire when you deal enough damage to an opponent.", img:true, galaxy:true},
+  {id:"duck", name:"Duck Sprite", rarity:"Epic", ability:"Replenishes your Shields when emoting or jamming.", img:true, galaxy:true},
+  {id:"ghost", name:"Ghost Sprite", rarity:"Epic", ability:"When reloading, you become cloaked for a short duration.", img:true, galaxy:true},
+  {id:"demon", name:"Demon Sprite", rarity:"Epic", ability:"When you defeat an opponent, you siphon Health and Shield from them.", img:true, galaxy:true},
+  {id:"king", name:"King Sprite", rarity:"Epic", ability:"Increases your Pickaxe's damage.", img:true, galaxy:true},
+  {id:"punk", name:"Punk Sprite", rarity:"Legendary", ability:"When mastered, randomly gives you infinite ammo.", img:true, galaxy:true},
+  {id:"dream", name:"Dream Sprite", rarity:"Legendary", ability:"Each time you level it up you get a random item. At level 5 it explodes and drops Legendary-rarity loot.", img:true, galaxy:true},
+  {id:"zeropoint", name:"Zero Point Sprite", rarity:"Mythic", ability:"Puts a Shield Bubble Jr. around you when you use a healing item.", img:true, galaxy:true},
   {id:"peanut", name:"TheBurntPeanut", rarity:"Mythic", ability:"Grants a small chance of getting random rare item drops from eliminations.", single:true},
 ];
 
-const VARIANTS = [{key:"standard",kind:"Standard"},{key:"gold",kind:"Gold"},{key:"gummy",kind:"Gummy"}];
+const VARIANTS = [{key:"standard",kind:"Standard"},{key:"gold",kind:"Gold"},{key:"gummy",kind:"Gummy"},{key:"galaxy",kind:"Galaxy"}];
 const tickSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#0c0f17" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>';
 
 let state = {};       // {"water:standard":true}
@@ -309,7 +313,8 @@ let filterRarity = "all";  // "all" | "Rare" | "Epic" | "Legendary" | "Mythic"
 
 const $ = id => document.getElementById(id);
 const note = msg => { $("note").textContent = msg; };
-const variantsFor = s => s.single ? [VARIANTS[0]] : VARIANTS;
+// Standard/Gold/Gummy for all multi-variant sprites; Galaxy only when the sprite has it.
+const variantsFor = s => s.single ? [VARIANTS[0]] : VARIANTS.filter(v => v.key !== "galaxy" || s.galaxy);
 const vid = (s,v) => s.id + ":" + v.key;
 
 function rebuild(){
@@ -463,13 +468,14 @@ $("f-cancel").addEventListener("click",()=>panel.classList.remove("open"));
 $("f-add").addEventListener("click",()=>{
   const name = $("f-name").value.trim();
   if(!name){ $("f-name").focus(); return; }
+  const hasVariants = $("f-variants").checked;
   const sp = {
     id: slug(name), name, rarity: $("f-rarity").value,
     ability: $("f-ability").value.trim(),
-    single: !$("f-variants").checked, custom: true
+    single: !hasVariants, galaxy: hasVariants && $("f-galaxy").checked, custom: true
   };
   custom.push(sp); saveCustom(); rebuild(); render();
-  $("f-name").value=""; $("f-ability").value=""; $("f-variants").checked=true;
+  $("f-name").value=""; $("f-ability").value=""; $("f-variants").checked=true; $("f-galaxy").checked=false;
   panel.classList.remove("open");
   note(`Added ${sp.name}. It now appears in your tracker.`);
 });

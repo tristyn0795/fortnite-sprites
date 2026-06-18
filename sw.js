@@ -1,8 +1,13 @@
 // Bump CACHE version whenever you change index.html or icons.
-const CACHE = "sprites-v7";
+const CACHE = "sprites-v8";
 const SPRITE_IDS = ["water","earth","fire","duck","ghost","demon","king","punk","dream","zeropoint"];
 const VARIANT_KEYS = ["standard","gold","gummy"];
-const SPRITE_IMAGES = SPRITE_IDS.flatMap(id => VARIANT_KEYS.map(v => `./images/${id}-${v}.webp`));
+// Galaxy released for every sprite except Earth.
+const GALAXY_IDS = ["water","fire","duck","ghost","demon","king","punk","dream","zeropoint"];
+const SPRITE_IMAGES = [
+  ...SPRITE_IDS.flatMap(id => VARIANT_KEYS.map(v => `./images/${id}-${v}.webp`)),
+  ...GALAXY_IDS.map(id => `./images/${id}-galaxy.webp`)
+];
 const SHELL = [
   "./",
   "./index.html",
